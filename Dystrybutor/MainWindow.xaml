@@ -21,6 +21,8 @@
             <Button x:Name="PrintButton" Content="Print" Width="100"  Margin="10" Click="PrintButton_Click"/>           
         </StackPanel>
 
+        <Label DockPanel.Dock="Top" HorizontalAlignment="Center" x:Name="ProgressLabel" Height="30" Width="210"/>
+        <ProgressBar  DockPanel.Dock="Top" x:Name="ProgressBarCalculations" Value="0" Height="10" Orientation="Horizontal"/>
         <DataGrid DockPanel.Dock="Top" x:Name="dg" Margin="0 8 0 0" FontSize="10" IsReadOnly="True" HorizontalContentAlignment="Center" CanUserSortColumns="True" CanUserAddRows="False" VerticalScrollBarVisibility="Visible" Height="700" AutoGenerateColumns="False">
             <DataGrid.Columns>
                 <DataGridTextColumn Binding="{Binding dateFormated}" Header="Data" />

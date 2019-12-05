@@ -8,7 +8,8 @@ namespace Dystrybutor
 {
     class Config
     {
-        public static double converter = 0.2937500;
+        // public static double converter = 0.2937500;    // Stacja - 01
+        public static double converter = 0.28371;         // Bennett
         public static List<Refueling> refuelingList = new List<Refueling>();
 
 

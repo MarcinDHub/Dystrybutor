@@ -42,16 +42,19 @@ namespace Dystrybutor
 
         private void PrintButton_Click(object sender, RoutedEventArgs e)
         {
-
+            FileInfo fi = new FileInfo(@"23800 Bennet.txt");
+            Console.WriteLine(fi.Length);
         }
 
 
         public void Calculations()
         {
-            using (var reader = new StreamReader(@"01.txt"))
+            FileInfo fi = new FileInfo(@"23800 Bennet.txt");
+            using (var reader = new StreamReader(@"23800 Bennet.txt"))
             {
-                int lineNumber = 1;
-
+                
+                int lineNumber = 0;
+                bool isRefuelingInProgress = false;
                 int beginValue = 0;
                 DateTime startTime = new DateTime(1999, 9, 9);
                 double fuelAmount = 0.0;
@@ -62,99 +65,147 @@ namespace Dystrybutor
 
                 while (!reader.EndOfStream)
                 {
-                    
-                    var line = reader.ReadLine();
-                    var currentLineValues = line.Split(';');
-
-                    currentFrame.dateTime = Convert.ToDateTime(currentLineValues[0]);
-                    currentFrame.l7 = Convert.ToInt32(currentLineValues[5]);
-                    currentFrame.dallas1 = Convert.ToInt32(currentLineValues[11]);
-                    currentFrame.dallas2 = Convert.ToInt32(currentLineValues[12]);
-
-                    if (lineNumber == 1)
+                    if (lineNumber > 1)
                     {
-                        lastLastFrame.dateTime = currentFrame.dateTime;
-                        lastLastFrame.l7 = currentFrame.l7;
-                        lastLastFrame.dallas1 = currentFrame.dallas1;
-                        lastLastFrame.dallas2 = currentFrame.dallas2;
-                    }
-                    if (lineNumber == 2)
-                    {
-                        lastFrame.dateTime = currentFrame.dateTime;
-                        lastFrame.l7 = currentFrame.l7;
-                        lastFrame.dallas1 = currentFrame.dallas1;
-                        lastFrame.dallas2 = currentFrame.dallas2;
-                    }
 
+                        var line = reader.ReadLine();
+                        var currentLineValues = line.Split(';');
 
-                    ///////////////////////////////////////////////////////////////////
-                    ///////////////////////////////////////////////////////////////////
-                    // **************** NA PODSTAWIE IMPULSÓW ***********************//
+                        currentFrame.dateTime = Convert.ToDateTime(currentLineValues[0]);
+                        currentFrame.l7 = Convert.ToInt32(currentLineValues[5]);
+                        currentFrame.dallas1 = Convert.ToInt32(currentLineValues[11]);
+                        currentFrame.dallas2 = Convert.ToInt32(currentLineValues[12]);
 
-                    if (lineNumber >= 3 && false)
-                    {
-                        if (currentFrame.l7 == lastFrame.l7)
+                        if (lineNumber == 1)
                         {
-                            // Nic się nie dzieje
-                            if (currentFrame.l7 == lastLastFrame.l7)
-                            {
-
-                            }
-
-                            // Zakończenie tankowania
-                            else if (currentFrame.l7 > lastLastFrame.l7)
-                            {
-                                fuelAmount = (currentFrame.l7 - beginValue) * converter;
-
-                                refuelingList.Add(new Refueling
-                                {
-                                    startTime = Convert.ToDateTime(startTime),
-                                    fuelAmount = Convert.ToDouble(fuelAmount)
-                                });
-
-                                Console.WriteLine(startTime + " : " + Math.Round(fuelAmount,2) + "L");
-
-                            }
+                            lastLastFrame.dateTime = currentFrame.dateTime;
+                            lastLastFrame.l7 = currentFrame.l7;
+                            lastLastFrame.dallas1 = currentFrame.dallas1;
+                            lastLastFrame.dallas2 = currentFrame.dallas2;
+                        }
+                        if (lineNumber == 2)
+                        {
+                            lastFrame.dateTime = currentFrame.dateTime;
+                            lastFrame.l7 = currentFrame.l7;
+                            lastFrame.dallas1 = currentFrame.dallas1;
+                            lastFrame.dallas2 = currentFrame.dallas2;
                         }
 
-                        else if (currentFrame.l7 > lastFrame.l7)
+
+
+                        // **************** NA PODSTAWIE IMPULSÓW ***********************//
+
+                        if (lineNumber >= 3 && false)
+                        {
+                            if (currentFrame.l7 == lastFrame.l7)
+                            {
+                                // Nic się nie dzieje
+                                if (currentFrame.l7 == lastLastFrame.l7)
+                                {
+
+                                }
+
+                                // Zakończenie tankowania
+                                else if (currentFrame.l7 > lastLastFrame.l7)
+                                {
+                                    fuelAmount = (currentFrame.l7 - beginValue) * converter;
+
+                                    refuelingList.Add(new Refueling
+                                    {
+                                        startTime = Convert.ToDateTime(startTime),
+                                        fuelAmount = Convert.ToDouble(fuelAmount)
+                                    });
+
+                                    Console.WriteLine(startTime + " : " + Math.Round(fuelAmount, 2) + "L");
+
+                                }
+                            }
+
+                            else if (currentFrame.l7 > lastFrame.l7)
+                            {
+                                // Start tankowania
+                                if (lastFrame.l7 == lastLastFrame.l7)
+                                {
+                                    beginValue = lastFrame.l7;
+                                    startTime = currentFrame.dateTime;
+                                }
+
+                                // Kontynuacja tankowania
+                                else if (lastFrame.l7 > lastLastFrame.l7)
+                                {
+
+                                }
+                            }
+
+
+                            lastLastFrame.l7 = lastFrame.l7;
+                            lastFrame.l7 = currentFrame.l7;
+                        }
+                        /////////////////////////////////////////////////////////
+
+
+
+
+
+                        // ************** NA PODSTAWIE LOGOWANIA DALLAS *****************//
+
+                        if (lineNumber >= 3 && false)
+                        {
+                            if (currentFrame.dallas1 != lastFrame.dallas1 && currentFrame.dallas1 * lastFrame.dallas1 == 0)
+                            {
+
+                                // Zakończenie tankowania
+                                if (currentFrame.dallas1 == 0)
+                                {
+                                    fuelAmount = (currentFrame.l7 - beginValue) * converter;
+
+                                    refuelingList.Add(new Refueling
+                                    {
+                                        startTime = Convert.ToDateTime(startTime),
+                                        fuelAmount = Convert.ToDouble(fuelAmount),
+                                        dallas1 = lastLastFrame.dallas1.ToString()
+                                    }); ;
+
+                                    Console.WriteLine(startTime + " : " + Math.Round(fuelAmount, 2) + "L");
+
+                                }
+
+                                // Start tankowania
+                                else if (currentFrame.dallas1 != 0)
+                                {
+                                    beginValue = lastFrame.l7;
+                                    startTime = currentFrame.dateTime;
+                                }
+                            }
+
+                            lastLastFrame.l7 = lastFrame.l7;
+                            lastLastFrame.dallas1 = lastFrame.dallas1;
+                            lastLastFrame.dallas2 = lastLastFrame.dallas2;
+                            lastFrame.l7 = currentFrame.l7;
+                            lastFrame.dallas1 = currentFrame.dallas1;
+                            lastFrame.dallas2 = currentFrame.dallas2;
+
+                        }
+
+
+
+                        /////////////////////////////////////////////////////////
+
+
+
+                        // ************** BEZ LOGOWANIA DALLAS *****************//
+                        if (lineNumber >= 3)
                         {
                             // Start tankowania
-                            if (lastFrame.l7 == lastLastFrame.l7)
+                            if (isRefuelingInProgress == false && currentFrame.l7 > lastFrame.l7 && currentFrame.dallas1 == 0)
                             {
+                                isRefuelingInProgress = true;
                                 beginValue = lastFrame.l7;
-                                startTime = currentFrame.dateTime;
+                                startTime = lastFrame.dateTime;
                             }
-
-                            // Kontynuacja tankowania
-                            else if (lastFrame.l7 > lastLastFrame.l7)
-                            {
-
-                            }
-                        }
-
-
-                        lastLastFrame.l7 = lastFrame.l7;
-                        lastFrame.l7 = currentFrame.l7;
-                    }
-
-                    /////////////////////////////////////////////////////////
-                    /////////////////////////////////////////////////////////
-                    /////////////////////////////////////////////////////////
-
-
-
-                    ///////////////////////////////////////////////////////////////////
-                    ///////////////////////////////////////////////////////////////////
-                    // ************** NA PODSTAWIE LOGOWANIA DALLAS *****************//
-
-                    if (lineNumber >= 3)
-                    {
-                        if (currentFrame.dallas1 != lastFrame.dallas1 && currentFrame.dallas1 * lastFrame.dallas1 == 0)
-                        {
 
                             // Zakończenie tankowania
-                            if (currentFrame.dallas1 == 0)
+                            if (isRefuelingInProgress && currentFrame.l7 == lastLastFrame.l7)
                             {
                                 fuelAmount = (currentFrame.l7 - beginValue) * converter;
 
@@ -166,34 +217,26 @@ namespace Dystrybutor
                                 }); ;
 
                                 Console.WriteLine(startTime + " : " + Math.Round(fuelAmount, 2) + "L");
-
+                                isRefuelingInProgress = false;
                             }
 
-                            // Start tankowania
-                            else if (currentFrame.dallas1 != 0)
-                            {
-                                beginValue = lastFrame.l7;
-                                startTime = currentFrame.dateTime;
-                            }
+
+                            lastLastFrame.l7 = lastFrame.l7;
+                            lastLastFrame.dallas1 = lastFrame.dallas1;
+                            lastLastFrame.dallas2 = lastLastFrame.dallas2;
+                            lastLastFrame.dateTime = lastLastFrame.dateTime;
+                            lastFrame.l7 = currentFrame.l7;
+                            lastFrame.dallas1 = currentFrame.dallas1;
+                            lastFrame.dallas2 = currentFrame.dallas2;
+                            lastFrame.dateTime = currentFrame.dateTime;
+
                         }
-
-                        lastLastFrame.l7 = lastFrame.l7;
-                        lastLastFrame.dallas1 = lastFrame.dallas1;
-                        lastLastFrame.dallas2 = lastLastFrame.dallas2;
-                        lastFrame.l7 = currentFrame.l7;
-                        lastFrame.dallas1 = currentFrame.dallas1;
-                        lastFrame.dallas2 = currentFrame.dallas2;
                     }
 
-                    /////////////////////////////////////////////////////////
-                    /////////////////////////////////////////////////////////
-                    /////////////////////////////////////////////////////////
-
-
-
-
-
                     //if (lineNumber == 20000) break;
+                    int x = (int)((lineNumber * 120) / (fi.Length/100));
+                    Console.WriteLine(x +  "%    Done");
+                    ProgressLabel.Content = (x + "%");
                     lineNumber++;
                 }
             }
