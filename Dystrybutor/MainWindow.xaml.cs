@@ -42,15 +42,14 @@ namespace Dystrybutor
 
         private void PrintButton_Click(object sender, RoutedEventArgs e)
         {
-            FileInfo fi = new FileInfo(@"23800 Bennet.txt");
-            Console.WriteLine(fi.Length);
+
         }
 
 
         public void Calculations()
         {
-            FileInfo fi = new FileInfo(@"23800 Bennet.txt");
-            using (var reader = new StreamReader(@"23800 Bennet.txt"))
+            FileInfo fi = new FileInfo(@"0101.txt");
+            using (var reader = new StreamReader(@"0101.txt"))
             {
                 
                 int lineNumber = 0;
@@ -234,9 +233,12 @@ namespace Dystrybutor
                     }
 
                     //if (lineNumber == 20000) break;
-                    int x = (int)((lineNumber * 120) / (fi.Length/100));
-                    Console.WriteLine(x +  "%    Done");
-                    ProgressLabel.Content = (x + "%");
+                    if (lineNumber% 1000 == 0)
+                    {
+                        int x = (int)((lineNumber * 120) / (fi.Length/100));
+                        Console.WriteLine(x +  "%    Done");
+                    }
+
                     lineNumber++;
                 }
             }
